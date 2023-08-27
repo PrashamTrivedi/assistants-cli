@@ -1,0 +1,14 @@
+[database]
+host = "localhost"
+port = 5432
+username = "myuser"
+password = "mypassword"
+database = "mydatabase"
+
+[api]
+key = "myapikey"
+url = "https://api.example.com"
+
+[logging]
+level = "info"
+file = "/var/log/myapp.log"
