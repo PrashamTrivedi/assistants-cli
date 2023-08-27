@@ -29,7 +29,7 @@ var startCmd = &cobra.Command{
 			fmt.Println("Error creating chat:", error.Error())
 			os.Exit(1)
 		}
-		chat.Start()
+		chat.Start("Hello There!")
 	},
 }
 

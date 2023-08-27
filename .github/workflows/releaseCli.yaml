@@ -11,7 +11,7 @@ permissions:
   contents: write
 
 jobs:
-  goreleaser:
+  releaseBinaries:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
