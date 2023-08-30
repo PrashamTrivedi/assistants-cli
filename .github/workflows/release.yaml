@@ -2,14 +2,14 @@ name: goreleaser
 
 on:
   push:
-    branches:
-      - "main"
+    tags:
+      - "*"
 
 permissions:
   contents: write
 
 jobs:
-  releaseSnapshots:
+  release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -26,7 +26,7 @@ jobs:
           # either 'goreleaser' (default) or 'goreleaser-pro'
           distribution: goreleaser
           version: latest
-          args: release ${{ env.flags }}
+          args: release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Your GoReleaser Pro key, if you are using the 'goreleaser-pro' distribution
