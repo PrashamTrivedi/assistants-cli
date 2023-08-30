@@ -4,6 +4,7 @@ import (
 	"assistants-cli/internal"
 	"encoding/json"
 	"os"
+	"time"
 )
 
 type AssistantFileStore struct {
@@ -11,6 +12,19 @@ type AssistantFileStore struct {
 }
 
 func NewAssistantFileStore(assistantFilePath string) *AssistantFileStore {
+	// Check if file exists on assistantFilePath, if not create it
+	if _, err := os.Stat(assistantFilePath); os.IsNotExist(err) {
+		file, err := os.Create(assistantFilePath)
+		defer file.Close()
+		if err != nil {
+			panic(err)
+		}
+		// Write empty array to file
+		emptyAssistants := internal.Assistants{}
+		if err := json.NewEncoder(file).Encode(emptyAssistants); err != nil {
+			panic(err)
+		}
+	}
 	return &AssistantFileStore{AssistantFilePath: assistantFilePath}
 }
 
@@ -82,6 +96,7 @@ func (f *AssistantFileStore) UpdateAssistant(assistant internal.Assistant) (inte
 			if assistant.DefaultModel != "" {
 				assistants[i].DefaultModel = assistant.DefaultModel
 			}
+			assistant.UpdatedOn = time.Now().UnixMilli()
 			break
 		}
 	}

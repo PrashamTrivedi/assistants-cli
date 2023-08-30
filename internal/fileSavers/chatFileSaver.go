@@ -4,6 +4,7 @@ import (
 	"assistants-cli/internal"
 	"encoding/json"
 	"os"
+	"time"
 
 	"github.com/sashabaranov/go-openai"
 )
@@ -13,6 +14,19 @@ type ChatFileStore struct {
 }
 
 func NewChatFileStore(chatFilePath string) *ChatFileStore {
+	if _, err := os.Stat(chatFilePath); os.IsNotExist(err) {
+		file, err := os.Create(chatFilePath)
+		defer file.Close()
+		if err != nil {
+			panic(err)
+		}
+		// Write empty array to file
+		emptyChats := []internal.ChatData{}
+		if err := json.NewEncoder(file).Encode(emptyChats); err != nil {
+			panic(err)
+		}
+
+	}
 	return &ChatFileStore{ChatFilePath: chatFilePath}
 }
 
@@ -43,6 +57,7 @@ func (f *ChatFileStore) getChats() ([]internal.ChatData, error) {
 
 func (f *ChatFileStore) CreateChat(chat internal.ChatData) ([]internal.ChatData, error) {
 
+	chat.CreatedOn = time.Now().UnixMilli()
 	chats, err := f.getChats()
 	if err != nil {
 		return nil, err
@@ -63,6 +78,7 @@ func (f *ChatFileStore) AddNewChatMessage(chatId string, message string) ([]inte
 	for i, chatFromStore := range chats {
 		if chatId == chatFromStore.ID {
 			chats[i].Messages = append(chats[i].Messages, internal.Message{Role: openai.ChatMessageRoleUser, Content: message})
+			chats[i].UpdatedOn = time.Now().UnixMilli()
 		}
 	}
 	err = f.WriteChats(chats)

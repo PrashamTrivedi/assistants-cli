@@ -14,7 +14,7 @@ var model string
 
 // createCmd represents the create command
 var createCmd = &cobra.Command{
-	Use:   "Add Assistant",
+	Use:   "add",
 	Short: "Create a new assistant",
 	Long:  `Create a new assistant with the specified prompt, model and name.`,
 	Run: func(cmd *cobra.Command, args []string) {

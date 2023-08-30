@@ -11,7 +11,7 @@ import (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "assistants-cli",
+	Use:   "assistants",
 	Short: "A CLI for interacting with OpenAI's chat assistants",
 	Long: `A CLI for interacting with OpenAI's chat assistants.
 	 This will allow you to create assistants with a prompt and default model, and chat with them.`,

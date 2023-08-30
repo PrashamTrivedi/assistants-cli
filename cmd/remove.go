@@ -11,7 +11,7 @@ var assistantNameToRemove string
 
 // removeCmd represents the remove command
 var removeCmd = &cobra.Command{
-	Use:   "remove [name]",
+	Use:   "remove",
 	Short: "Remove a resource",
 	Long:  `Remove a resource with the specified name.`,
 	Run: func(cmd *cobra.Command, args []string) {

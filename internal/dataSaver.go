@@ -7,12 +7,16 @@ type Assistant struct {
 	Prompt       string `json:"prompt,omitempty"`
 	Name         string `json:"name,omitempty"`
 	DefaultModel string `json:"default_model,omitempty"`
+	CreatedOn    int64  `json:"created_on,omitempty"`
+	UpdatedOn    int64  `json:"updated_on,omitempty"`
 }
 
 type ChatData struct {
 	ID          string    `json:"id,omitempty"`
 	AssistantId string    `json:"assistant_id,omitempty"`
 	Messages    []Message `json:"messages,omitempty"`
+	CreatedOn   int64     `json:"created_on,omitempty"`
+	UpdatedOn   int64     `json:"updated_on,omitempty"`
 }
 
 type Message struct {

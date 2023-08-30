@@ -30,6 +30,14 @@ func NewChat(apiKey ApiKey, assistant Assistant) (*Chat, error) {
 	return chat, nil
 }
 
+func ListChat(chatStore ChatStore) ([]ChatData, error) {
+	chats, err := chatStore.ReadChats()
+	if err != nil {
+		return nil, err
+	}
+	return chats, nil
+}
+
 func (c *Chat) Start(message string, chatStore ChatStore) error {
 	fmt.Println("Starting chat...")
 	resp, err := c.chatClient.CreateChatCompletion(
