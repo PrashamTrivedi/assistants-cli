@@ -19,6 +19,7 @@ var startCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 
 		fileWriter := filesavers.NewAssistantFileStore("assistants.json")
+		chatFileWriter := filesavers.NewChatFileStore("chats.json")
 		assistant, error := internal.FindAssistant(assistantNameForChat, fileWriter)
 		if error != nil {
 			fmt.Println("No assistant found with name:", assistantNameForChat)
@@ -30,7 +31,7 @@ var startCmd = &cobra.Command{
 			fmt.Println("Error creating chat:", error.Error())
 			os.Exit(1)
 		}
-		chat.Start("Hello There!")
+		chat.Start("Hello There!", chatFileWriter)
 	},
 }
 

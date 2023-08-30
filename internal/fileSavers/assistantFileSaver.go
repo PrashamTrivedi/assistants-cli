@@ -39,6 +39,21 @@ func (f *AssistantFileStore) getAssistants() (internal.Assistants, error) {
 
 }
 
+func (f *AssistantFileStore) FindAssistant(assistantId string) (*internal.Assistant, error) {
+
+	assistants, err := f.getAssistants()
+
+	if err != nil {
+		return nil, err
+	}
+	for _, assistant := range assistants {
+		if assistant.ID == assistantId {
+			return &assistant, nil
+		}
+	}
+	return nil, nil
+}
+
 func (f *AssistantFileStore) CreateAssistant(assistant internal.Assistant) (internal.Assistants, error) {
 
 	assistants, err := f.getAssistants()

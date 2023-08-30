@@ -10,9 +10,9 @@ type Assistant struct {
 }
 
 type ChatData struct {
-	ID        string    `json:"id,omitempty"`
-	Assistant string    `json:"assistant,omitempty"`
-	Messages  []Message `json:"messages,omitempty"`
+	ID          string    `json:"id,omitempty"`
+	AssistantId string    `json:"assistant_id,omitempty"`
+	Messages    []Message `json:"messages,omitempty"`
 }
 
 type Message struct {
@@ -25,13 +25,15 @@ type AssistantStore interface {
 	CreateAssistant(Assistant) (Assistants, error)
 	UpdateAssistant(Assistant) (Assistants, error)
 	RemoveAssistant(Assistant) (Assistants, error)
+	FindAssistant(string) (*Assistant, error)
 	ReadAssistants() (Assistants, error)
 }
 
 type ChatStore interface {
 	WriteChats([]ChatData) error
 	CreateChat(ChatData) ([]ChatData, error)
-	UpdateChat(ChatData) ([]ChatData, error)
+	AddNewChatMessage(string, string) ([]ChatData, error)
+	GetChat(string) (ChatData, error)
 	RemoveChat(ChatData) ([]ChatData, error)
 	ReadChats() ([]ChatData, error)
 }

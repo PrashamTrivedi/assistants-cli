@@ -9,8 +9,7 @@ import (
 
 func NewAssistant(name, prompt, model string, assistantStore AssistantStore) *Assistants {
 	assistant := Assistant{Name: name, Prompt: prompt, DefaultModel: model}
-	id := ulid.Make()
-	assistant.ID = id.String()
+	assistant.ID = ulid.Make().String()
 
 	assistants, err := assistantStore.CreateAssistant(assistant)
 
