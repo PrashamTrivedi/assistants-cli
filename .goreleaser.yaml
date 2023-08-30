@@ -32,9 +32,12 @@ checksum:
   name_template: "checksums.txt"
 snapshot:
   name_template: "{{ incpatch .Version }}-next"
-release:
-  discussion_category_name: General
+  discussion_category_name: Announcements
   mode: append
+release:
+  discussion_category_name: Announcements
+  mode: append
+
 changelog:
   sort: asc
   groups:
