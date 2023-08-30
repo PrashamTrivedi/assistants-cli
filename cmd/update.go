@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"assistants-cli/internal"
+	filesavers "assistants-cli/internal/fileSavers"
 	"fmt"
 	"os"
 
@@ -21,7 +22,7 @@ var updateCmd = &cobra.Command{
 			fmt.Println("Nothing to update")
 			os.Exit(1)
 		}
-		fileWriter := internal.NewFileStore("assistants.json")
+		fileWriter := filesavers.NewAssistantFileStore("assistants.json")
 
 		internal.UpdateAssistant(assistantName, assistantPrompt, assistantModel, fileWriter)
 	},

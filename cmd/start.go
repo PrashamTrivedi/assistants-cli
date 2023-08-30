@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"assistants-cli/internal"
+	filesavers "assistants-cli/internal/fileSavers"
 	"fmt"
 	"os"
 
@@ -17,7 +18,7 @@ var startCmd = &cobra.Command{
 	Long:  `This command starts the chat assistant and prompts the user for input.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		fileWriter := internal.NewFileStore("assistants.json")
+		fileWriter := filesavers.NewAssistantFileStore("assistants.json")
 		assistant, error := internal.FindAssistant(assistantNameForChat, fileWriter)
 		if error != nil {
 			fmt.Println("No assistant found with name:", assistantNameForChat)

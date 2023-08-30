@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"assistants-cli/internal"
+	filesavers "assistants-cli/internal/fileSavers"
 
 	"github.com/spf13/cobra"
 )
@@ -14,7 +15,7 @@ var removeCmd = &cobra.Command{
 	Short: "Remove a resource",
 	Long:  `Remove a resource with the specified name.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fileWriter := internal.NewFileStore("assistants.json")
+		fileWriter := filesavers.NewAssistantFileStore("assistants.json")
 		internal.RemoveAssistant(assistantNameToRemove, fileWriter)
 	},
 }

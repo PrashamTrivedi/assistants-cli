@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"assistants-cli/internal"
+	"assistants-cli/internal/fileSavers"
 
 	"github.com/sashabaranov/go-openai"
 	"github.com/spf13/cobra"
@@ -17,7 +18,7 @@ var createCmd = &cobra.Command{
 	Short: "Create a new assistant",
 	Long:  `Create a new assistant with the specified prompt, model and name.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fileWriter := internal.NewFileStore("assistants.json")
+		fileWriter := filesavers.NewAssistantFileStore("assistants.json")
 		if model == "" {
 			model = openai.GPT3Dot5Turbo16K
 		}
