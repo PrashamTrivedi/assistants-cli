@@ -3,6 +3,7 @@ package filesavers
 import (
 	"assistants-cli/internal"
 	"encoding/json"
+	"io/fs"
 	"os"
 	"time"
 )
@@ -30,7 +31,7 @@ func NewAssistantFileStore(assistantFilePath string) *AssistantFileStore {
 
 func (f *AssistantFileStore) WriteAssistants(assistants internal.Assistants) error {
 	// Write assistants to embedded file
-	assistantFile, error := os.Open(f.AssistantFilePath)
+	assistantFile, error := os.OpenFile(f.AssistantFilePath, os.O_CREATE|os.O_WRONLY, fs.FileMode(os.O_RDWR))
 	if error != nil {
 		return error
 	}

@@ -26,24 +26,24 @@ func RemoveAssistant(name string, assistantStore AssistantStore) (Assistants, er
 	return assistantStore.RemoveAssistant(Assistant{Name: name})
 }
 
-func UpdateAssistant(name, prompt, model string, assistantStore AssistantStore) (Assistants, error) {
-	return assistantStore.UpdateAssistant(Assistant{Name: name, Prompt: prompt, DefaultModel: model})
+func UpdateAssistant(id, name, prompt, model string, assistantStore AssistantStore) (Assistants, error) {
+	return assistantStore.UpdateAssistant(Assistant{ID: id, Name: name, Prompt: prompt, DefaultModel: model})
 }
 
 func ReadAssistants(assistantStore AssistantStore) ([]Assistant, error) {
 	return assistantStore.ReadAssistants()
 }
 
-func FindAssistant(name string, assistantStore AssistantStore) (*Assistant, error) {
+func FindAssistant(assistantId string, assistantStore AssistantStore) (*Assistant, error) {
 	assistants, err := assistantStore.ReadAssistants()
 
 	if err != nil {
 		return nil, err
 	}
 	for _, assistant := range assistants {
-		if assistant.Name == name {
+		if assistant.ID == assistantId {
 			return &assistant, nil
 		}
 	}
-	return nil, fmt.Errorf("assistant %s not found", name)
+	return nil, fmt.Errorf("assistant %s not found", assistantId)
 }

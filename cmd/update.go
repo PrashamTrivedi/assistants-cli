@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var assistantName string
+var assistantId string
 var assistantPrompt string
 var assistantModel string
 
@@ -23,16 +23,24 @@ var updateCmd = &cobra.Command{
 			os.Exit(1)
 		}
 		fileWriter := filesavers.NewAssistantFileStore("assistants.json")
-
-		internal.UpdateAssistant(assistantName, assistantPrompt, assistantModel, fileWriter)
+		assistant, err := internal.FindAssistant(assistantId, fileWriter)
+		if err != nil {
+			fmt.Println("Error finding assistant:", err.Error())
+			os.Exit(1)
+		}
+		if assistant == nil {
+			fmt.Println("No assistant found with ID:", assistantId)
+			os.Exit(1)
+		}
+		internal.UpdateAssistant(assistantId, assistant.Name, assistantPrompt, assistantModel, fileWriter)
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(updateCmd)
-	updateCmd.Flags().StringVarP(&assistantName, "name", "n", "", "Name of the assistant")
+	updateCmd.Flags().StringVarP(&assistantId, "assistantId", "a", "", "Name of the assistant")
 	updateCmd.Flags().StringVarP(&assistantPrompt, "prompt", "p", "", "Prompt for the assistant")
 	updateCmd.Flags().StringVarP(&assistantModel, "model", "m", "", "Default Model to use with the assistant")
-	updateCmd.MarkFlagRequired("name")
+	updateCmd.MarkFlagRequired("assistantId")
 
 }

@@ -11,6 +11,7 @@ import (
 type ApiKey string
 
 type Chat struct {
+	chatId     string
 	assistant  *Assistant
 	messages   []openai.ChatCompletionMessage
 	chatClient *openai.Client
@@ -19,10 +20,12 @@ type Chat struct {
 func NewChat(apiKey ApiKey, assistant Assistant) (*Chat, error) {
 	chat := &Chat{}
 	client := openai.NewClient(string(apiKey))
+	chat.assistant = &assistant
 	chat.messages = []openai.ChatCompletionMessage{
 		{
 			Role:    openai.ChatMessageRoleSystem,
 			Content: assistant.Prompt,
+			Name:    assistant.Name,
 		},
 	}
 	chat.chatClient = client
@@ -38,46 +41,25 @@ func ListChat(chatStore ChatStore) ([]ChatData, error) {
 	return chats, nil
 }
 
-func (c *Chat) Start(message string, chatStore ChatStore) error {
-	fmt.Println("Starting chat...")
-	resp, err := c.chatClient.CreateChatCompletion(
-		context.Background(),
-		openai.ChatCompletionRequest{
-			Model:    c.assistant.DefaultModel,
-			Messages: c.messages,
-		},
-	)
-	if err != nil {
-		fmt.Printf("ChatCompletion error: %v\n", err)
-		return err
-	}
-
-	fmt.Println(resp.Choices[0].Message.Content)
-
-	chatData := ChatData{
-		ID:          ulid.Make().String(),
-		AssistantId: c.assistant.ID,
-		Messages:    c.convertMessageForStorage(),
-	}
-	_, err = chatStore.CreateChat(chatData)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (c *Chat) Continue(chatId, message string, chatStore ChatStore, assistantsStore AssistantStore) error {
+func GetChat(chatId string, apiKey ApiKey, chatStore ChatStore, assistantStore AssistantStore) (*Chat, error) {
 	chatData, err := chatStore.GetChat(chatId)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	assistant, err := assistantsStore.FindAssistant(chatData.AssistantId)
+	chat := Chat{}
+	chat.convertMessageFromStorage(chatData)
+	chat.assistant, err = FindAssistant(chatData.AssistantId, assistantStore)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	c.assistant = assistant
-	c.convertMessageFromStorage(chatData)
+	chat.chatClient = openai.NewClient(string(apiKey))
+	chat.chatId = chatData.ID
+
+	return &chat, nil
+}
+
+func (c *Chat) Start(message string, chatStore ChatStore) (string, error) {
+	fmt.Println("Starting chat...")
 	c.messages = append(c.messages, openai.ChatCompletionMessage{
 		Role:    openai.ChatMessageRoleUser,
 		Content: message,
@@ -91,12 +73,56 @@ func (c *Chat) Continue(chatId, message string, chatStore ChatStore, assistantsS
 	)
 	if err != nil {
 		fmt.Printf("ChatCompletion error: %v\n", err)
+		return "", err
+	}
+
+	fmt.Println(resp.Choices[0].Message.Content)
+	c.messages = append(c.messages, resp.Choices[0].Message)
+
+	chatData := ChatData{
+		ID:          ulid.Make().String(),
+		AssistantId: c.assistant.ID,
+		Messages:    c.convertMessageForStorage(),
+	}
+
+	_, err = chatStore.CreateChat(chatData)
+	if err != nil {
+		return "", err
+	}
+
+	return chatData.ID, nil
+}
+
+func (c *Chat) Continue(message string, chatStore ChatStore, assistantsStore AssistantStore) error {
+
+	userMessage := openai.ChatCompletionMessage{
+		Role:    openai.ChatMessageRoleUser,
+		Content: message,
+	}
+	c.messages = append(c.messages, userMessage)
+	resp, err := c.chatClient.CreateChatCompletion(
+		context.Background(),
+		openai.ChatCompletionRequest{
+			Model:    c.assistant.DefaultModel,
+			Messages: c.messages,
+		},
+	)
+	if err != nil {
+		fmt.Printf("ChatCompletion error: %v\n", err)
 		return err
 	}
 
 	fmt.Println(resp.Choices[0].Message.Content)
+	c.messages = append(c.messages, resp.Choices[0].Message)
 
-	_, err = chatStore.AddNewChatMessage(chatId, message)
+	messagesToSend := []Message{{
+		Role:    userMessage.Role,
+		Content: userMessage.Content,
+	}, {
+		Role:    resp.Choices[0].Message.Role,
+		Content: resp.Choices[0].Message.Content,
+	}}
+	_, err = chatStore.AddNewChatMessage(c.chatId, messagesToSend)
 	if err != nil {
 		return err
 	}

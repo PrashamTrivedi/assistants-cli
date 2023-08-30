@@ -15,6 +15,20 @@
                 "${input:commandToRun}"
             ]
         },
+        {
+            "name": "Start Chat",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceFolder}/main.go",
+            "console": "integratedTerminal",
+            "args": [
+                "chat",
+                "-m",
+                "I want to overwrite a content of file and not append it, How would I do that",
+                "--continue"
+            ]
+        },
     ],
     "inputs": [
         {

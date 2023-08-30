@@ -36,7 +36,7 @@ type AssistantStore interface {
 type ChatStore interface {
 	WriteChats([]ChatData) error
 	CreateChat(ChatData) ([]ChatData, error)
-	AddNewChatMessage(string, string) ([]ChatData, error)
+	AddNewChatMessage(string, []Message) ([]ChatData, error)
 	GetChat(string) (ChatData, error)
 	RemoveChat(ChatData) ([]ChatData, error)
 	ReadChats() ([]ChatData, error)

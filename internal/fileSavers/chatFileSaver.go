@@ -3,10 +3,9 @@ package filesavers
 import (
 	"assistants-cli/internal"
 	"encoding/json"
+	"io/fs"
 	"os"
 	"time"
-
-	"github.com/sashabaranov/go-openai"
 )
 
 type ChatFileStore struct {
@@ -32,7 +31,7 @@ func NewChatFileStore(chatFilePath string) *ChatFileStore {
 
 func (f *ChatFileStore) WriteChats(chats []internal.ChatData) error {
 	// Write chats to embedded file
-	chatFile, error := os.Open(f.ChatFilePath)
+	chatFile, error := os.OpenFile(f.ChatFilePath, os.O_CREATE|os.O_WRONLY, fs.FileMode(os.O_RDWR))
 	if error != nil {
 		return error
 	}
@@ -70,14 +69,14 @@ func (f *ChatFileStore) CreateChat(chat internal.ChatData) ([]internal.ChatData,
 	return chats, nil
 }
 
-func (f *ChatFileStore) AddNewChatMessage(chatId string, message string) ([]internal.ChatData, error) {
+func (f *ChatFileStore) AddNewChatMessage(chatId string, messages []internal.Message) ([]internal.ChatData, error) {
 	chats, err := f.getChats()
 	if err != nil {
 		return nil, err
 	}
 	for i, chatFromStore := range chats {
 		if chatId == chatFromStore.ID {
-			chats[i].Messages = append(chats[i].Messages, internal.Message{Role: openai.ChatMessageRoleUser, Content: message})
+			chats[i].Messages = append(chats[i].Messages, messages...)
 			chats[i].UpdatedOn = time.Now().UnixMilli()
 		}
 	}
