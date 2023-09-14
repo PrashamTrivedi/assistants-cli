@@ -24,13 +24,10 @@ var chatCmd = &cobra.Command{
 
 	Run: func(cmd *cobra.Command, args []string) {
 
-		fileWriter := filesavers.NewAssistantFileStore("assistants.json")
-		chatFileWriter := filesavers.NewChatFileStore("chats.json")
-
-		viper.SetConfigFile("config.json")
-		viper.ReadInConfig()
+		fileWriter := filesavers.NewAssistantFileStore(internal.ReadConfig(internal.AssistantFilePath))
+		chatFileWriter := filesavers.NewChatFileStore(internal.ReadConfig(internal.ChatFilePath))
 		if continueChat {
-			chatId = viper.GetString("latest_chat_id")
+			chatId = internal.ReadConfig("latest_chat_id")
 		}
 		chatIdToStore := ""
 
@@ -73,8 +70,9 @@ var chatCmd = &cobra.Command{
 			chatIdToStore = chatId
 
 		}
-		viper.Set("latest_chat_id", chatIdToStore)
-		viper.WriteConfig()
+		internal.WriteConfig(map[string]string{
+			"latest_chat_id": chatIdToStore,
+		})
 	},
 }
 

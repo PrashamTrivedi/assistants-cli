@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io/fs"
 	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -12,7 +13,17 @@ type ChatFileStore struct {
 	ChatFilePath string
 }
 
+func GetDefaultChatFilePath() string {
+	home, _ := os.UserHomeDir()
+	chatsPath := filepath.Join(home, ".assistants", "chats.json")
+	return chatsPath
+}
+
 func NewChatFileStore(chatFilePath string) *ChatFileStore {
+	if chatFilePath == "" {
+		chatFilePath = GetDefaultChatFilePath()
+		internal.WriteConfig(map[string]string{internal.ChatFilePath: chatFilePath})
+	}
 	if _, err := os.Stat(chatFilePath); os.IsNotExist(err) {
 		file, err := os.Create(chatFilePath)
 		defer file.Close()

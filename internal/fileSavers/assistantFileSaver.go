@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io/fs"
 	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -12,7 +13,17 @@ type AssistantFileStore struct {
 	AssistantFilePath string
 }
 
+func GetDefaultAssistantFilePath() string {
+	home, _ := os.UserHomeDir()
+	assistantsPath := filepath.Join(home, ".assistants", "assistants.json")
+	return assistantsPath
+}
+
 func NewAssistantFileStore(assistantFilePath string) *AssistantFileStore {
+	if assistantFilePath == "" {
+		assistantFilePath = GetDefaultAssistantFilePath()
+		internal.WriteConfig(map[string]string{internal.AssistantFilePath: assistantFilePath})
+	}
 	// Check if file exists on assistantFilePath, if not create it
 	if _, err := os.Stat(assistantFilePath); os.IsNotExist(err) {
 		file, err := os.Create(assistantFilePath)

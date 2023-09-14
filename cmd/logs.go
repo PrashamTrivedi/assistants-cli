@@ -19,7 +19,7 @@ var logsCmd = &cobra.Command{
 	Long:  `Shows your chat history, including ChatID and assistant ID`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("logs called")
-		chatFileWriter := filesavers.NewChatFileStore("chats.json")
+		chatFileWriter := filesavers.NewChatFileStore(internal.ReadConfig(internal.ChatFilePath))
 		chatData, err := internal.ListChat(chatFileWriter)
 		if err != nil {
 			fmt.Println("Error reading chat:", err.Error())

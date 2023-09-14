@@ -4,6 +4,7 @@ Copyright © 2023 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"assistants-cli/internal"
 	"context"
 	"fmt"
 	"os"
@@ -11,7 +12,6 @@ import (
 
 	"github.com/sashabaranov/go-openai"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 // listModelsCmd represents the listModels command
@@ -20,14 +20,13 @@ var listModelsCmd = &cobra.Command{
 	Short: "List Available models",
 	Long:  `List available models for the OpenAI API. This is useful to create assistants with different models.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		viper.SetConfigFile("config.json")
-		viper.ReadInConfig()
-		openaiKey := viper.Get("openai_key")
-		if openaiKey == nil || openaiKey == "" {
+
+		openaiKey := internal.ReadConfig(internal.OpenaiKey)
+		if openaiKey == "" {
 			fmt.Println("OpenAI key not found. Please set it using the config command.")
 			os.Exit(1)
 		}
-		client := openai.NewClient(openaiKey.(string))
+		client := openai.NewClient(openaiKey)
 		fmt.Println("Listing models...")
 		models, err := client.ListModels(context.Background())
 

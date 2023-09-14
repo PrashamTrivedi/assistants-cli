@@ -15,7 +15,7 @@ var removeCmd = &cobra.Command{
 	Short: "Remove a resource",
 	Long:  `Remove a resource with the specified name.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fileWriter := filesavers.NewAssistantFileStore("assistants.json")
+		fileWriter := filesavers.NewAssistantFileStore(internal.ReadConfig(internal.AssistantFilePath))
 		internal.RemoveAssistant(assistantNameToRemove, fileWriter)
 	},
 }

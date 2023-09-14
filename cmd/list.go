@@ -19,7 +19,7 @@ var listCmd = &cobra.Command{
 	Long:  `List all your assistants`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		fileWriter := filesavers.NewAssistantFileStore("assistants.json")
+		fileWriter := filesavers.NewAssistantFileStore(internal.ReadConfig(internal.AssistantFilePath))
 		assistants, err := internal.ReadAssistants(fileWriter)
 		if err != nil {
 			fmt.Println("Error reading assistants:", err.Error())

@@ -16,6 +16,21 @@
             ]
         },
         {
+            "name": "Set config",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceFolder}/main.go",
+            "console": "integratedTerminal",
+            "args": [
+                "config",
+                "-a",
+                "test.json",
+                "-k",
+                "test"
+            ]
+        },
+        {
             "name": "Start Chat",
             "type": "go",
             "request": "launch",

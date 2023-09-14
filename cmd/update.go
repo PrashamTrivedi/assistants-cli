@@ -22,7 +22,7 @@ var updateCmd = &cobra.Command{
 			fmt.Println("Nothing to update")
 			os.Exit(1)
 		}
-		fileWriter := filesavers.NewAssistantFileStore("assistants.json")
+		fileWriter := filesavers.NewAssistantFileStore(internal.AssistantFilePath)
 		assistant, err := internal.FindAssistant(assistantId, fileWriter)
 		if err != nil {
 			fmt.Println("Error finding assistant:", err.Error())
