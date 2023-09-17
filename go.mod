@@ -3,7 +3,8 @@ module assistants-cli
 go 1.21
 
 require (
-	github.com/sashabaranov/go-openai v1.14.2
+	github.com/oklog/ulid/v2 v2.1.0
+	github.com/sashabaranov/go-openai v1.15.3
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.16.0
 )
@@ -15,7 +16,6 @@ require (
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
-	github.com/oklog/ulid/v2 v2.1.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.8 // indirect
 	github.com/spf13/afero v1.9.5 // indirect
 	github.com/spf13/cast v1.5.1 // indirect
