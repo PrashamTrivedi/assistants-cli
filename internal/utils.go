@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -38,6 +39,11 @@ func ResetConfig(key string) {
 	viper.WriteConfig()
 }
 func createConfigPath() string {
+	if secretPath, exists := os.LookupEnv("SECRET_CONFIG_PATH"); exists {
+		configFilePath := secretPath
+		fmt.Println("Warning: You are using a secret config path meant for testing. Proceed with caution.")
+		return configFilePath
+	}
 	home, _ := os.UserHomeDir()
 	configPath := filepath.Join(home, ".assistants", "config.json")
 	// Create ~/.assistants/config.json if it doesn't exist
