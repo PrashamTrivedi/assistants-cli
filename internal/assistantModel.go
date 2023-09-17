@@ -2,28 +2,23 @@ package internal
 
 import (
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/oklog/ulid/v2"
 )
 
-func NewAssistant(name, prompt, model string, assistantStore AssistantStore) *Assistants {
+func NewAssistant(name, prompt, model string, assistantStore AssistantStore) (*Assistants, error) {
 	assistant := Assistant{Name: name, Prompt: prompt, DefaultModel: model}
 	assistant.ID = ulid.Make().String()
 	assistant.CreatedOn = time.Now().UnixMilli()
 
 	assistants, err := assistantStore.CreateAssistant(assistant)
 
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
-	return &assistants
+	return &assistants, err
 }
 
-func RemoveAssistant(name string, assistantStore AssistantStore) (Assistants, error) {
-	return assistantStore.RemoveAssistant(Assistant{Name: name})
+func RemoveAssistant(id string, assistantStore AssistantStore) (Assistants, error) {
+	return assistantStore.RemoveAssistant(Assistant{ID: id})
 }
 
 func UpdateAssistant(id, name, prompt, model string, assistantStore AssistantStore) (Assistants, error) {

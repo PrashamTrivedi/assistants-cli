@@ -3,6 +3,8 @@ package cmd
 import (
 	"assistants-cli/internal"
 	filesavers "assistants-cli/internal/fileSavers"
+	"fmt"
+	"os"
 
 	"github.com/sashabaranov/go-openai"
 	"github.com/spf13/cobra"
@@ -22,7 +24,12 @@ var createCmd = &cobra.Command{
 		if model == "" {
 			model = openai.GPT3Dot5Turbo16K
 		}
-		internal.NewAssistant(name, prompt, model, fileWriter)
+		_, err := internal.NewAssistant(name, prompt, model, fileWriter)
+		if err != nil {
+			fmt.Println(err.Error())
+			os.Exit(1)
+		}
+
 	},
 }
 

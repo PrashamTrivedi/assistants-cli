@@ -36,6 +36,7 @@ func ResetConfig(key string) {
 	}
 	viper.ReadInConfig()
 	viper.Set(key, "")
+
 	viper.WriteConfig()
 }
 func createConfigPath() string {
