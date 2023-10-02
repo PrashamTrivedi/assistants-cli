@@ -12,6 +12,9 @@ import (
 var assistantId string
 var assistantPrompt string
 var assistantModel string
+var assistantAllowSearch bool
+var assistantAllowCommands bool
+var assistantAllowFileReading bool
 
 var updateCmd = &cobra.Command{
 	Use:   "update",
@@ -22,7 +25,7 @@ var updateCmd = &cobra.Command{
 			fmt.Println("Nothing to update")
 			os.Exit(1)
 		}
-		fileWriter := filesavers.NewAssistantFileStore(internal.AssistantFilePath)
+		fileWriter := filesavers.NewAssistantFileStore(internal.ReadConfig(internal.AssistantFilePath))
 		assistant, err := internal.FindAssistant(assistantId, fileWriter)
 		if err != nil {
 			fmt.Println("Error finding assistant:", err.Error())
@@ -32,7 +35,7 @@ var updateCmd = &cobra.Command{
 			fmt.Println("No assistant found with ID:", assistantId)
 			os.Exit(1)
 		}
-		internal.UpdateAssistant(assistantId, assistant.Name, assistantPrompt, assistantModel, fileWriter)
+		internal.UpdateAssistant(assistantId, assistant.Name, assistantPrompt, assistantModel, assistantAllowSearch, assistantAllowCommands, assistantAllowFileReading, fileWriter)
 	},
 }
 
@@ -41,6 +44,9 @@ func init() {
 	updateCmd.Flags().StringVarP(&assistantId, "assistantId", "a", "", "Name of the assistant")
 	updateCmd.Flags().StringVarP(&assistantPrompt, "prompt", "p", "", "Prompt for the assistant")
 	updateCmd.Flags().StringVarP(&assistantModel, "model", "m", "", "Default Model to use with the assistant")
+	updateCmd.Flags().BoolVarP(&assistantAllowSearch, "allow-search", "s", false, "Allow the assistant to search the web")
+	updateCmd.Flags().BoolVarP(&assistantAllowCommands, "allow-commands", "c", false, "Allow the assistant to run commands")
+	updateCmd.Flags().BoolVarP(&assistantAllowFileReading, "allow-file-reading", "f", false, "Allow the assistant to read files")
 	updateCmd.MarkFlagRequired("assistantId")
 
 }

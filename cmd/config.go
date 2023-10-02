@@ -9,6 +9,7 @@ import (
 var key string
 var assistantFilePath string
 var chatFilePath string
+var serpApiKey string
 
 var configCmd = &cobra.Command{
 	Use:   "config",
@@ -32,6 +33,7 @@ func init() {
 	configCmd.Flags().StringVarP(&key, "key", "k", "", "configuration key (required)")
 	configCmd.Flags().StringVarP(&assistantFilePath, "assistantFilePath", "a", "", "path to assistant file")
 	configCmd.Flags().StringVarP(&chatFilePath, "chatFilePath", "c", "", "path to chat file")
+	configCmd.Flags().StringVarP(&serpApiKey, "serpApiKey", "s", "", "serp api key")
 	configCmd.MarkFlagRequired("key")
 
 }

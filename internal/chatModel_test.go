@@ -76,7 +76,7 @@ func TestListChat(t *testing.T) {
 	mockChatStore := NewChatStore()
 	mockAssistantStore := NewAssistantStore()
 
-	assistants, error := NewAssistant("testAssistant", "Say Hello", "davinci", mockAssistantStore)
+	assistants, error := NewAssistant("testAssistant", "Say Hello", "davinci", false, false, false, mockAssistantStore)
 	if error != nil {
 		t.Fatalf("Expected nil error, got %v", error)
 	}

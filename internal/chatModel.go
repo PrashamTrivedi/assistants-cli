@@ -2,6 +2,7 @@ package internal
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/oklog/ulid/v2"
@@ -15,6 +16,7 @@ type Chat struct {
 	assistant  *Assistant
 	messages   []openai.ChatCompletionMessage
 	chatClient *openai.Client
+	functions  []openai.FunctionDefinition
 }
 
 func NewChat(apiKey ApiKey, assistant Assistant) (*Chat, error) {
@@ -28,9 +30,68 @@ func NewChat(apiKey ApiKey, assistant Assistant) (*Chat, error) {
 			Name:    assistant.Name,
 		},
 	}
+	chat.functions = getFunctionDefinitions(assistant)
 	chat.chatClient = client
 
 	return chat, nil
+}
+
+func getFunctionDefinitions(assistant Assistant) []openai.FunctionDefinition {
+	functions := make([]openai.FunctionDefinition, 0)
+
+	if assistant.AllowSearch {
+		functions = append(functions, openai.FunctionDefinition{
+			Name:        "search",
+			Description: "Search the web for the query",
+			Parameters: json.RawMessage(`{
+    "type": "object",
+    "properties": {
+        "query": {
+            "type": "string"
+        }
+    },
+    "required": [
+        "query"
+    ]
+}`)})
+	}
+	if assistant.AllowCommands {
+		functions = append(functions, openai.FunctionDefinition{
+			Name:        "command",
+			Description: "Execute a command on the machine with the arguments",
+			Parameters: json.RawMessage(`{
+	"type": "object",
+	"properties": {
+		"command": {
+			"type": "string"
+		},
+		"arguments": {
+			"type": "string"
+		}
+	},
+	"required": [
+		"command"
+	]}`)})
+
+	}
+
+	if assistant.AllowFileReading {
+		functions = append(functions, openai.FunctionDefinition{
+			Name:        "read_file",
+			Description: "Read a file from the machine",
+			Parameters: json.RawMessage(`{
+	"type": "object",
+	"properties": {
+		"file": {
+			"type": "string"
+		}
+	},
+	"required": [
+		"file"
+	]}`)})
+	}
+
+	return functions
 }
 
 func ListChat(chatStore ChatStore) ([]ChatData, error) {
@@ -67,8 +128,9 @@ func (c *Chat) Start(message string, chatStore ChatStore) (string, error) {
 	resp, err := c.chatClient.CreateChatCompletion(
 		context.Background(),
 		openai.ChatCompletionRequest{
-			Model:    c.assistant.DefaultModel,
-			Messages: c.messages,
+			Model:     c.assistant.DefaultModel,
+			Messages:  c.messages,
+			Functions: c.functions,
 		},
 	)
 	if err != nil {
@@ -77,6 +139,10 @@ func (c *Chat) Start(message string, chatStore ChatStore) (string, error) {
 	}
 
 	fmt.Println(resp.Choices[0].Message.Content)
+	if resp.Choices[0].Message.FunctionCall.Name != "" {
+		fmt.Println("Function call: ", resp.Choices[0].Message.FunctionCall.Name)
+		fmt.Println("Function call: ", resp.Choices[0].Message.FunctionCall.Arguments)
+	}
 	c.messages = append(c.messages, resp.Choices[0].Message)
 
 	chatData := ChatData{
@@ -103,8 +169,9 @@ func (c *Chat) Continue(message string, chatStore ChatStore, assistantsStore Ass
 	resp, err := c.chatClient.CreateChatCompletion(
 		context.Background(),
 		openai.ChatCompletionRequest{
-			Model:    c.assistant.DefaultModel,
-			Messages: c.messages,
+			Model:     c.assistant.DefaultModel,
+			Messages:  c.messages,
+			Functions: c.functions,
 		},
 	)
 	if err != nil {

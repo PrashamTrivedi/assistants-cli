@@ -108,6 +108,9 @@ func (f *AssistantFileStore) UpdateAssistant(assistant internal.Assistant) (inte
 			if assistant.DefaultModel != "" {
 				assistants[i].DefaultModel = assistant.DefaultModel
 			}
+			assistants[i].AllowSearch = assistant.AllowSearch
+			assistants[i].AllowCommands = assistant.AllowCommands
+			assistants[i].AllowFileReading = assistant.AllowFileReading
 			assistant.UpdatedOn = time.Now().UnixMilli()
 			break
 		}

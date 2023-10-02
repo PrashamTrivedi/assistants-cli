@@ -7,8 +7,8 @@ import (
 	"github.com/oklog/ulid/v2"
 )
 
-func NewAssistant(name, prompt, model string, assistantStore AssistantStore) (*Assistants, error) {
-	assistant := Assistant{Name: name, Prompt: prompt, DefaultModel: model}
+func NewAssistant(name, prompt, model string, allowSearch, allowCommands, allowFileReading bool, assistantStore AssistantStore) (*Assistants, error) {
+	assistant := Assistant{Name: name, Prompt: prompt, DefaultModel: model, AllowSearch: allowSearch, AllowCommands: allowCommands, AllowFileReading: allowFileReading}
 	assistant.ID = ulid.Make().String()
 	assistant.CreatedOn = time.Now().UnixMilli()
 
@@ -21,8 +21,9 @@ func RemoveAssistant(id string, assistantStore AssistantStore) (Assistants, erro
 	return assistantStore.RemoveAssistant(Assistant{ID: id})
 }
 
-func UpdateAssistant(id, name, prompt, model string, assistantStore AssistantStore) (Assistants, error) {
-	return assistantStore.UpdateAssistant(Assistant{ID: id, Name: name, Prompt: prompt, DefaultModel: model})
+func UpdateAssistant(id, name, prompt, model string, allowSearch, allowCommands, allowFileReading bool, assistantStore AssistantStore) (Assistants, error) {
+	return assistantStore.UpdateAssistant(Assistant{
+		ID: id, Name: name, Prompt: prompt, DefaultModel: model, AllowSearch: allowSearch, AllowCommands: allowCommands, AllowFileReading: allowFileReading})
 }
 
 func ReadAssistants(assistantStore AssistantStore) ([]Assistant, error) {

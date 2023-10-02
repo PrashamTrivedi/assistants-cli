@@ -3,12 +3,15 @@ package internal
 type Assistants []Assistant
 
 type Assistant struct {
-	ID           string `json:"id,omitempty"`
-	Prompt       string `json:"prompt,omitempty"`
-	Name         string `json:"name,omitempty"`
-	DefaultModel string `json:"default_model,omitempty"`
-	CreatedOn    int64  `json:"created_on,omitempty"`
-	UpdatedOn    int64  `json:"updated_on,omitempty"`
+	ID               string `json:"id,omitempty"`
+	Prompt           string `json:"prompt,omitempty"`
+	Name             string `json:"name,omitempty"`
+	DefaultModel     string `json:"default_model,omitempty"`
+	CreatedOn        int64  `json:"created_on,omitempty"`
+	UpdatedOn        int64  `json:"updated_on,omitempty"`
+	AllowSearch      bool   `json:"allow_search,omitempty"`
+	AllowCommands    bool   `json:"allow_commands,omitempty"`
+	AllowFileReading bool   `json:"allow_file_reading,omitempty"`
 }
 
 type ChatData struct {

@@ -68,7 +68,7 @@ func TestNewAssistant(t *testing.T) {
 
 	assistantStore := NewAssistantStore()
 
-	assistants, err := NewAssistant("test", "test", "test", assistantStore)
+	assistants, err := NewAssistant("test", "test", "test",false,false,false, assistantStore)
 	defer RemoveAssistant("test", assistantStore)
 
 	if err != nil {
@@ -99,7 +99,7 @@ func TestNewAssistantError(t *testing.T) {
 
 	assistantStore := NewAssistantStore()
 
-	_, err := NewAssistant("test", "test", "ErrorModel", assistantStore)
+	_, err := NewAssistant("test", "test", "ErrorModel",false,false,false, assistantStore)
 
 	if err == nil {
 		t.Errorf("NewAssistant failed: Expected an error but didn't get one")
@@ -111,7 +111,7 @@ func TestRemoveAssistant(t *testing.T) {
 
 	assistantStore := NewAssistantStore()
 
-	assistants, err := NewAssistant("test", "test", "test", assistantStore)
+	assistants, err := NewAssistant("test", "test", "test",false,false,false, assistantStore)
 
 	if err != nil {
 		t.Errorf("NewAssistant failed: Didn't expect an error but got one, actual %s", err)
@@ -150,7 +150,7 @@ func TestUpdateAssistant(t *testing.T) {
 
 	assistantStore := NewAssistantStore()
 
-	assistants, err := NewAssistant("test", "test", "test", assistantStore)
+	assistants, err := NewAssistant("test", "test", "test",false,false,false, assistantStore)
 
 	if err != nil {
 		t.Errorf("NewAssistant failed: Didn't expect an error but got one, actual %s", err)
@@ -165,7 +165,7 @@ func TestUpdateAssistant(t *testing.T) {
 
 	firstAssistant := (*assistants)[0]
 
-	updatedAssistants, error := UpdateAssistant(firstAssistant.ID, "test2", "test2", "test2", assistantStore)
+	updatedAssistants, error := UpdateAssistant(firstAssistant.ID, "test2", "test2", "test2",false,false,false, assistantStore)
 
 	if error != nil {
 		t.Errorf("UpdateAssistant failed: Didn't expect an error but got one, actual %s", error)
@@ -198,8 +198,8 @@ func TestFindAssistant(t *testing.T) {
 
 	assistantStore := NewAssistantStore()
 
-	NewAssistant("test", "test", "test", assistantStore)
-	assistants, err := NewAssistant("test2", "test2", "test2", assistantStore)
+	NewAssistant("test", "test", "test",false,false,false, assistantStore)
+	assistants, err := NewAssistant("test2", "test2", "test2",false,false,false, assistantStore)
 
 	if err != nil {
 		t.Errorf("NewAssistant failed: Didn't expect an error but got one, actual %s", err)
@@ -247,7 +247,7 @@ func TestFindAssistantError(t *testing.T) {
 		t.Errorf("FindAssistant failed: Expected an error but didn't get one")
 	}
 
-	_, error = NewAssistant("error", "test", "test", assistantStore)
+	_, error = NewAssistant("error", "test", "test",false,false,false, assistantStore)
 	defer RemoveAssistant("test", assistantStore)
 
 	if error != nil {

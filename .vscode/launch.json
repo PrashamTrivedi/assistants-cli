@@ -44,6 +44,24 @@
                 "--continue"
             ]
         },
+        {
+            "name": "Update Assistant",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceFolder}/main.go",
+            "console": "integratedTerminal",
+            "args": [
+                "update",
+                "-a",
+                "01HAA1VR6RVYS7TA42SY9MKFCC",
+                "-p",
+                "You are a helpful assistant running CLI, you know shell and linux very well. Your job is to find out commands and explain them if required",
+                "-c",
+                "-f",
+                "-s"
+            ]
+        }
     ],
     "inputs": [
         {

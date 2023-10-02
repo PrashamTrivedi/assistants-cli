@@ -34,6 +34,10 @@ var listCmd = &cobra.Command{
 			fmt.Printf("\t Name: %s\n", assistant.Name)
 			fmt.Printf("\t Prompt: %s\n", assistant.Prompt)
 			fmt.Printf("\t Default Model: %s\n", assistant.DefaultModel)
+			fmt.Printf("\t Allow Search: %t\n", assistant.AllowSearch)
+			fmt.Printf("\t Allow Commands: %t\n", assistant.AllowCommands)
+			fmt.Printf("\t Allow File Reading: %t\n", assistant.AllowFileReading)
+
 		}
 
 	},
