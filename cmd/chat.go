@@ -7,7 +7,6 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 var assistantIdForChat string
@@ -38,7 +37,8 @@ var chatCmd = &cobra.Command{
 			}
 			message = "Hello There!"
 		}
-		openaiKey := viper.GetString("openai_key")
+		openaiKey := internal.ReadConfig(internal.OpenaiKey)
+		serpApiKey := internal.ReadConfig(internal.SerpApiKey)
 		if chatId == "" {
 			assistant, error := internal.FindAssistant(assistantIdForChat, fileWriter)
 			if error != nil {
@@ -50,7 +50,7 @@ var chatCmd = &cobra.Command{
 				fmt.Println("Error creating chat:", error.Error())
 				os.Exit(1)
 			}
-			chatIdFromStorage, err := chat.Start(message, chatFileWriter)
+			chatIdFromStorage, err := chat.Start(message, internal.SerpKey(serpApiKey), chatFileWriter)
 			if err != nil {
 				fmt.Println("Error starting chat:", err.Error())
 				os.Exit(1)
@@ -62,7 +62,7 @@ var chatCmd = &cobra.Command{
 				fmt.Println("Error getting chat:", error.Error())
 				os.Exit(1)
 			}
-			err := chat.Continue(message, chatFileWriter, fileWriter)
+			err := chat.Continue(message,internal.SerpKey(serpApiKey), chatFileWriter, fileWriter)
 			if err != nil {
 				fmt.Println("Error continuing chat:", err.Error())
 				os.Exit(1)

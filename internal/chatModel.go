@@ -5,11 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"log/slog"
+
 	"github.com/oklog/ulid/v2"
 	openai "github.com/sashabaranov/go-openai"
 )
 
 type ApiKey string
+type SerpKey string
 
 type Chat struct {
 	chatId     string
@@ -119,7 +122,7 @@ func GetChat(chatId string, apiKey ApiKey, chatStore ChatStore, assistantStore A
 	return &chat, nil
 }
 
-func (c *Chat) Start(message string, chatStore ChatStore) (string, error) {
+func (c *Chat) Start(message string, serpApiKey SerpKey, chatStore ChatStore) (string, error) {
 	fmt.Println("Starting chat...")
 	c.messages = append(c.messages, openai.ChatCompletionMessage{
 		Role:    openai.ChatMessageRoleUser,
@@ -138,12 +141,99 @@ func (c *Chat) Start(message string, chatStore ChatStore) (string, error) {
 		return "", err
 	}
 
-	fmt.Println(resp.Choices[0].Message.Content)
-	if resp.Choices[0].Message.FunctionCall.Name != "" {
-		fmt.Println("Function call: ", resp.Choices[0].Message.FunctionCall.Name)
-		fmt.Println("Function call: ", resp.Choices[0].Message.FunctionCall.Arguments)
+	responseMessage := resp.Choices[0].Message
+	functionMessage := openai.ChatCompletionMessage{
+		Role:    openai.ChatMessageRoleFunction,
+		Content: "",
 	}
-	c.messages = append(c.messages, resp.Choices[0].Message)
+	if responseMessage.FunctionCall.Name != "" {
+		slog.Info("Function call: ", "Name", resp.Choices[0].Message.FunctionCall.Name)
+		slog.Info("Function call: ", "Args", resp.Choices[0].Message.FunctionCall.Arguments)
+		functionMessage.Name = resp.Choices[0].Message.FunctionCall.Name
+		// Arguments is a stringified json, convert it into a map
+		var arguments map[string]interface{}
+		err := json.Unmarshal([]byte(resp.Choices[0].Message.FunctionCall.Arguments), &arguments)
+		if err != nil {
+			fmt.Println("Error parsing arguments: ", err.Error())
+
+			functionMessage.Content = "I had some trouble understanding your request. It can be the query, or it can be my understanding. "
+		}
+
+		if resp.Choices[0].Message.FunctionCall.Name == "search" {
+			query, ok := arguments["query"].(string)
+			if !ok {
+				functionMessage.Content = "The query I got is not a string. "
+			}
+			results, err := Search(query, string(serpApiKey))
+			if err != nil {
+				functionMessage.Content = "I had some trouble searching for your query. "
+			}
+			slog.Debug("Results: ", "Result", results)
+			resultOutput := fmt.Sprintf("Here is the first result I found for you: %s at this link %s",
+				results["snippet"].(string), results["link"].(string))
+			functionMessage.Content = resultOutput
+		}
+		if resp.Choices[0].Message.FunctionCall.Name == "command" {
+			command, ok := arguments["command"].(string)
+			if !ok {
+				functionMessage.Content = "The command I got is not a string, please try again"
+			}
+			args, ok := arguments["arguments"].(string)
+			if !ok {
+				functionMessage.Content = "The arguments I got is not a string, please try again"
+			}
+			slog.Info("Command", "Command", command, "Arguments", args)
+			output, err := RunCommand(command, args)
+			slog.Info("Command", "Output", output)
+			if err != nil {
+
+				functionMessage.Content = fmt.Sprintf("The function encountered this error: '%s', State the error and then explain this", err.Error())
+			} else if output == "" {
+				functionMessage.Content = "I did not get any output from your command. "
+			} else {
+				functionMessage.Content = output
+			}
+		}
+		if resp.Choices[0].Message.FunctionCall.Name == "read_file" {
+			file, ok := arguments["file"].(string)
+			if !ok {
+				functionMessage.Content = "The file I got is not a string, please try again"
+			}
+			slog.Info("File", "File", file)
+
+			output, err := Readfile(file)
+			slog.Info("File", "Output", output)
+			if err != nil {
+				slog.Error("File", "Error", err.Error())
+				if err.Error() == "file does not exist" {
+					functionMessage.Content = fmt.Sprintf("The file %s does not exist. ", file)
+				} else {
+					functionMessage.Content = fmt.Sprintf("The function encountered this error: '%s'", err.Error())
+				}
+			} else {
+				functionMessage.Content = output
+			}
+		}
+		c.messages = append(c.messages, functionMessage)
+		afterFuncResponse, err := c.chatClient.CreateChatCompletion(
+			context.Background(),
+			openai.ChatCompletionRequest{
+				Model:     c.assistant.DefaultModel,
+				Messages:  c.messages,
+				Functions: c.functions,
+			},
+		)
+		if err != nil {
+			fmt.Printf("ChatCompletion error: %v\n", err)
+			return "", err
+		}
+		c.messages = append(c.messages, afterFuncResponse.Choices[0].Message)
+		fmt.Println(afterFuncResponse.Choices[0].Message.Content)
+	} else {
+
+		c.messages = append(c.messages, resp.Choices[0].Message)
+		fmt.Println(resp.Choices[0].Message.Content)
+	}
 
 	chatData := ChatData{
 		ID:          ulid.Make().String(),
@@ -159,7 +249,7 @@ func (c *Chat) Start(message string, chatStore ChatStore) (string, error) {
 	return chatData.ID, nil
 }
 
-func (c *Chat) Continue(message string, chatStore ChatStore, assistantsStore AssistantStore) error {
+func (c *Chat) Continue(message string, serpApiKey SerpKey, chatStore ChatStore, assistantsStore AssistantStore) error {
 
 	userMessage := openai.ChatCompletionMessage{
 		Role:    openai.ChatMessageRoleUser,

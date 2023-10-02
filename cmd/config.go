@@ -24,6 +24,7 @@ var configCmd = &cobra.Command{
 		if chatFilePath != "" {
 			configToSet[internal.ChatFilePath] = chatFilePath
 		}
+		configToSet[internal.SerpApiKey] = serpApiKey
 		internal.WriteConfig(configToSet)
 	},
 }

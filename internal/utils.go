@@ -12,6 +12,7 @@ const (
 	AssistantFilePath = "assistant_file_path"
 	ChatFilePath      = "chat_file_path"
 	OpenaiKey         = "openai_key"
+	SerpApiKey        = "serp_api_key"
 )
 
 func ReadConfig(configKey string) string {

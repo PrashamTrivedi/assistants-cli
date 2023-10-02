@@ -39,9 +39,10 @@
             "console": "integratedTerminal",
             "args": [
                 "chat",
+                "-a",
+                "01HAA1VR6RVYS7TA42SY9MKFCC",
                 "-m",
-                "I want to overwrite a content of file and not append it, How would I do that",
-                "--continue"
+                "Explain root.go code to me"
             ]
         },
         {
