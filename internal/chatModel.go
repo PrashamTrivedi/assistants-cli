@@ -142,15 +142,47 @@ func (c *Chat) Start(message string, serpApiKey SerpKey, chatStore ChatStore) (s
 	}
 
 	responseMessage := resp.Choices[0].Message
-	functionMessage := openai.ChatCompletionMessage{
-		Role:    openai.ChatMessageRoleFunction,
-		Content: "",
+	// Arguments is a stringified json, convert it into a map
+	functionMessages, err := handleFunctionCall(responseMessage, resp, serpApiKey, c)
+
+	if err != nil {
+		fmt.Println("Error handling function call: ", err.Error())
+		return "", err
 	}
-	if responseMessage.FunctionCall.Name != "" {
+	isFunctionHandled := err == nil && len(functionMessages) > 0
+	if isFunctionHandled {
+		c.messages = append(c.messages, functionMessages...)
+	} else {
+		c.messages = append(c.messages, resp.Choices[0].Message)
+		fmt.Println(resp.Choices[0].Message.Content)
+	}
+
+	chatData := ChatData{
+		ID:          ulid.Make().String(),
+		AssistantId: c.assistant.ID,
+		Messages:    c.convertMessageForStorage(),
+	}
+
+	_, err = chatStore.CreateChat(chatData)
+	if err != nil {
+		return "", err
+	}
+
+	return chatData.ID, nil
+}
+
+func handleFunctionCall(responseMessage openai.ChatCompletionMessage, resp openai.ChatCompletionResponse, serpApiKey SerpKey, c *Chat) ([]openai.ChatCompletionMessage, error) {
+
+	functionMessages := make([]openai.ChatCompletionMessage, 0)
+	if responseMessage.FunctionCall != nil && responseMessage.FunctionCall.Name != "" {
+		functionMessage := openai.ChatCompletionMessage{
+			Role:    openai.ChatMessageRoleFunction,
+			Content: "",
+		}
 		slog.Info("Function call: ", "Name", resp.Choices[0].Message.FunctionCall.Name)
 		slog.Info("Function call: ", "Args", resp.Choices[0].Message.FunctionCall.Arguments)
 		functionMessage.Name = resp.Choices[0].Message.FunctionCall.Name
-		// Arguments is a stringified json, convert it into a map
+
 		var arguments map[string]interface{}
 		err := json.Unmarshal([]byte(resp.Choices[0].Message.FunctionCall.Arguments), &arguments)
 		if err != nil {
@@ -169,7 +201,7 @@ func (c *Chat) Start(message string, serpApiKey SerpKey, chatStore ChatStore) (s
 				functionMessage.Content = "I had some trouble searching for your query. "
 			}
 			slog.Debug("Results: ", "Result", results)
-			resultOutput := fmt.Sprintf("Here is the first result I found for you: %s at this link %s",
+			resultOutput := fmt.Sprintf("{\"snippet\":\"%s\",\"link\":\"(%s)\"}",
 				results["snippet"].(string), results["link"].(string))
 			functionMessage.Content = resultOutput
 		}
@@ -186,7 +218,6 @@ func (c *Chat) Start(message string, serpApiKey SerpKey, chatStore ChatStore) (s
 			output, err := RunCommand(command, args)
 			slog.Info("Command", "Output", output)
 			if err != nil {
-
 				functionMessage.Content = fmt.Sprintf("The function encountered this error: '%s', State the error and then explain this", err.Error())
 			} else if output == "" {
 				functionMessage.Content = "I did not get any output from your command. "
@@ -214,39 +245,25 @@ func (c *Chat) Start(message string, serpApiKey SerpKey, chatStore ChatStore) (s
 				functionMessage.Content = output
 			}
 		}
-		c.messages = append(c.messages, functionMessage)
+		functionMessages = append(functionMessages, functionMessage)
+		messages := append(c.messages, functionMessage)
+		chatRequest := openai.ChatCompletionRequest{
+			Model:     c.assistant.DefaultModel,
+			Messages:  messages,
+			Functions: c.functions,
+		}
 		afterFuncResponse, err := c.chatClient.CreateChatCompletion(
 			context.Background(),
-			openai.ChatCompletionRequest{
-				Model:     c.assistant.DefaultModel,
-				Messages:  c.messages,
-				Functions: c.functions,
-			},
+			chatRequest,
 		)
 		if err != nil {
-			fmt.Printf("ChatCompletion error: %v\n", err)
-			return "", err
+			slog.Error("ChatCompletion", "error", err)
+			return nil, err
 		}
-		c.messages = append(c.messages, afterFuncResponse.Choices[0].Message)
+		functionMessages = append(functionMessages, afterFuncResponse.Choices[0].Message)
 		fmt.Println(afterFuncResponse.Choices[0].Message.Content)
-	} else {
-
-		c.messages = append(c.messages, resp.Choices[0].Message)
-		fmt.Println(resp.Choices[0].Message.Content)
 	}
-
-	chatData := ChatData{
-		ID:          ulid.Make().String(),
-		AssistantId: c.assistant.ID,
-		Messages:    c.convertMessageForStorage(),
-	}
-
-	_, err = chatStore.CreateChat(chatData)
-	if err != nil {
-		return "", err
-	}
-
-	return chatData.ID, nil
+	return functionMessages, nil
 }
 
 func (c *Chat) Continue(message string, serpApiKey SerpKey, chatStore ChatStore, assistantsStore AssistantStore) error {
@@ -254,6 +271,12 @@ func (c *Chat) Continue(message string, serpApiKey SerpKey, chatStore ChatStore,
 	userMessage := openai.ChatCompletionMessage{
 		Role:    openai.ChatMessageRoleUser,
 		Content: message,
+	}
+	for index, message := range c.messages {
+		if message.Role == openai.ChatMessageRoleFunction && message.Name == "" {
+			message.Name = "function"
+		}
+		c.messages[index] = message
 	}
 	c.messages = append(c.messages, userMessage)
 	resp, err := c.chatClient.CreateChatCompletion(
@@ -268,9 +291,21 @@ func (c *Chat) Continue(message string, serpApiKey SerpKey, chatStore ChatStore,
 		fmt.Printf("ChatCompletion error: %v\n", err)
 		return err
 	}
+	responseMessage := resp.Choices[0].Message
+	// Arguments is a stringified json, convert it into a map
+	functionMessages, err := handleFunctionCall(responseMessage, resp, serpApiKey, c)
 
-	fmt.Println(resp.Choices[0].Message.Content)
-	c.messages = append(c.messages, resp.Choices[0].Message)
+	if err != nil {
+		fmt.Println("Error handling function call: ", err.Error())
+		return err
+	}
+	isFunctionHandled := err != nil && len(functionMessages) > 0
+	if isFunctionHandled {
+		c.messages = append(c.messages, functionMessages...)
+	} else {
+		c.messages = append(c.messages, resp.Choices[0].Message)
+		fmt.Println(resp.Choices[0].Message.Content)
+	}
 
 	messagesToSend := []Message{{
 		Role:    userMessage.Role,
@@ -292,6 +327,7 @@ func (c *Chat) convertMessageForStorage() []Message {
 		messages = append(messages, Message{
 			Role:    message.Role,
 			Content: message.Content,
+			Name:    message.Name,
 		})
 	}
 	return messages
