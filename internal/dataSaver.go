@@ -15,11 +15,18 @@ type Assistant struct {
 }
 
 type ChatData struct {
-	ID          string    `json:"id,omitempty"`
-	AssistantId string    `json:"assistant_id,omitempty"`
-	Messages    []Message `json:"messages,omitempty"`
-	CreatedOn   int64     `json:"created_on,omitempty"`
-	UpdatedOn   int64     `json:"updated_on,omitempty"`
+	ID          string      `json:"id,omitempty"`
+	AssistantId string      `json:"assistant_id,omitempty"`
+	Messages    []Message   `json:"messages,omitempty"`
+	CreatedOn   int64       `json:"created_on,omitempty"`
+	UpdatedOn   int64       `json:"updated_on,omitempty"`
+	Functions   []Functions `json:"functions,omitempty"`
+}
+
+type Functions struct {
+	Name        string `json:"name"`
+	Description string `json:"description,omitempty"`
+	Parameters  any    `json:"parameters"`
 }
 
 type Message struct {

@@ -112,6 +112,7 @@ func GetChat(chatId string, apiKey ApiKey, chatStore ChatStore, assistantStore A
 	}
 	chat := Chat{}
 	chat.convertMessageFromStorage(chatData)
+	chat.convertFunctionFromStorage(chatData)
 	chat.assistant, err = FindAssistant(chatData.AssistantId, assistantStore)
 	if err != nil {
 		return nil, err
@@ -161,6 +162,7 @@ func (c *Chat) Start(message string, serpApiKey SerpKey, chatStore ChatStore) (s
 		ID:          ulid.Make().String(),
 		AssistantId: c.assistant.ID,
 		Messages:    c.convertMessageForStorage(),
+		Functions:   c.convertFunctionForStorage(),
 	}
 
 	_, err = chatStore.CreateChat(chatData)
@@ -246,7 +248,7 @@ func handleFunctionCall(responseMessage openai.ChatCompletionMessage, resp opena
 			}
 		}
 		functionMessages = append(functionMessages, functionMessage)
-		messages := append(c.messages, functionMessage)
+		messages := append(c.messages, responseMessage, functionMessage)
 		chatRequest := openai.ChatCompletionRequest{
 			Model:     c.assistant.DefaultModel,
 			Messages:  messages,
@@ -261,7 +263,18 @@ func handleFunctionCall(responseMessage openai.ChatCompletionMessage, resp opena
 			return nil, err
 		}
 		functionMessages = append(functionMessages, afterFuncResponse.Choices[0].Message)
-		fmt.Println(afterFuncResponse.Choices[0].Message.Content)
+		functionResponseMessage := afterFuncResponse.Choices[0].Message
+		fmt.Println(functionResponseMessage.Content)
+		if functionResponseMessage.FunctionCall != nil && functionResponseMessage.FunctionCall.Name != "" {
+			// Create a copy of c
+			updatedChat := *c
+			updatedChat.messages = messages
+			newFunctionMessages, err := handleFunctionCall(functionResponseMessage, resp, serpApiKey, &updatedChat)
+			if err != nil {
+				return nil, err
+			}
+			functionMessages = append(functionMessages, newFunctionMessages...)
+		}
 	}
 	return functionMessages, nil
 }
@@ -299,24 +312,56 @@ func (c *Chat) Continue(message string, serpApiKey SerpKey, chatStore ChatStore,
 		fmt.Println("Error handling function call: ", err.Error())
 		return err
 	}
-	isFunctionHandled := err != nil && len(functionMessages) > 0
-	if isFunctionHandled {
-		c.messages = append(c.messages, functionMessages...)
-	} else {
-		c.messages = append(c.messages, resp.Choices[0].Message)
-		fmt.Println(resp.Choices[0].Message.Content)
-	}
-
+	isFunctionHandled := err == nil && len(functionMessages) > 0
 	messagesToSend := []Message{{
 		Role:    userMessage.Role,
 		Content: userMessage.Content,
-	}, {
-		Role:    resp.Choices[0].Message.Role,
-		Content: resp.Choices[0].Message.Content,
 	}}
+	if isFunctionHandled {
+		c.messages = append(c.messages, functionMessages...)
+		for _, message := range functionMessages {
+			messagesToSend = append(messagesToSend, Message{
+				Role:    message.Role,
+				Content: message.Content,
+				Name:    message.Name,
+			})
+		}
+	} else {
+		c.messages = append(c.messages, resp.Choices[0].Message)
+		fmt.Println(resp.Choices[0].Message.Content)
+		messagesToSend = append(messagesToSend, Message{
+			Role:    resp.Choices[0].Message.Role,
+			Content: resp.Choices[0].Message.Content,
+			Name:    resp.Choices[0].Message.Name,
+		})
+	}
+
 	_, err = chatStore.AddNewChatMessage(c.chatId, messagesToSend)
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+func (c *Chat) convertFunctionForStorage() []Functions {
+	var functions []Functions
+	for _, function := range c.functions {
+		functions = append(functions, Functions{
+			Name:        function.Name,
+			Description: function.Description,
+			Parameters:  function.Parameters,
+		})
+	}
+	return functions
+}
+
+func (c *Chat) convertFunctionFromStorage(chatData ChatData) error {
+	for _, function := range chatData.Functions {
+		c.functions = append(c.functions, openai.FunctionDefinition{
+			Name:        function.Name,
+			Description: function.Description,
+			Parameters:  function.Parameters,
+		})
 	}
 	return nil
 }
@@ -338,6 +383,7 @@ func (c *Chat) convertMessageFromStorage(chatData ChatData) error {
 		c.messages = append(c.messages, openai.ChatCompletionMessage{
 			Role:    message.Role,
 			Content: message.Content,
+			Name:    message.Name,
 		})
 	}
 	return nil

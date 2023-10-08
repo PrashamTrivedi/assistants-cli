@@ -39,10 +39,24 @@
             "console": "integratedTerminal",
             "args": [
                 "chat",
-                "-a",
-                "01HAA1VR6RVYS7TA42SY9MKFCC",
                 "-m",
-                "Explain root.go code to me"
+                "Who is Current President of India?",
+                "-a",
+                "01HBV5CW6Q0VZ9RPENCY4A9EHE"
+            ]
+        },
+        {
+            "name": "Continue Chat",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceFolder}/main.go",
+            "console": "integratedTerminal",
+            "args": [
+                "chat",
+                "-m",
+                "What is their age?",
+                "--continue"
             ]
         },
         {
