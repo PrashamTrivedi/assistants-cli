@@ -5,7 +5,7 @@ go 1.21
 require (
 	github.com/oklog/ulid/v2 v2.1.0
 	github.com/sashabaranov/go-openai v1.24.0
-	github.com/serpapi/google-search-results-golang v0.0.0-20230616000151-95707d993dc6
+	github.com/serpapi/google-search-results-golang v0.0.0-20240325113416-ec93f510648e
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.17.0
 )
