@@ -3,3 +3,4 @@ dist/
 assistants.json
 chats.json
 config.json
+.SourceSailor/analysis
