@@ -177,6 +177,8 @@ github.com/sashabaranov/go-openai v1.15.4 h1:BXCR0Uxk5RipeY4yBC7g6pBVfcjh8jwrMNO
 github.com/sashabaranov/go-openai v1.15.4/go.mod h1:lj5b/K+zjTSFxVLijLSTDZuP7adOgerWeFyZLUhAKRg=
 github.com/sashabaranov/go-openai v1.24.0 h1:4H4Pg8Bl2RH/YSnU8DYumZbuHnnkfioor/dtNlB20D4=
 github.com/sashabaranov/go-openai v1.24.0/go.mod h1:lj5b/K+zjTSFxVLijLSTDZuP7adOgerWeFyZLUhAKRg=
+github.com/sashabaranov/go-openai v1.26.0 h1:upM565hxdqvCxNzuAcEBZ1XsfGehH0/9kgk9rFVpDxQ=
+github.com/sashabaranov/go-openai v1.26.0/go.mod h1:lj5b/K+zjTSFxVLijLSTDZuP7adOgerWeFyZLUhAKRg=
 github.com/serpapi/google-search-results-golang v0.0.0-20230616000151-95707d993dc6 h1:Zn5ptU8qDWLN0kv4zxouKF0Sj0ty6YrB9a1u7suC1c4=
 github.com/serpapi/google-search-results-golang v0.0.0-20230616000151-95707d993dc6/go.mod h1:B4KcaaGbSpn3vq3FxSCsEJrBirStags89KTusB2of58=
 github.com/serpapi/google-search-results-golang v0.0.0-20240325113416-ec93f510648e h1:pBW1bjkGQGBdbT7a4IKq4W3H2apMQ7qvf+E/Ng5/0DY=
